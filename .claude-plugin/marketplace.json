@@ -1,0 +1,15 @@
+{
+  "name": "git-freshness",
+  "description": "Claude Code plugin that keeps agents off stale git checkouts.",
+  "owner": {
+    "name": "Albert Nahas",
+    "url": "https://github.com/albertnahas"
+  },
+  "plugins": [
+    {
+      "name": "git-freshness",
+      "source": "./",
+      "description": "Stops Claude Code from reasoning on a stale git checkout."
+    }
+  ]
+}

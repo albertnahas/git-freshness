@@ -1,0 +1,10 @@
+{
+  "name": "git-freshness",
+  "version": "1.0.0",
+  "description": "Stops Claude Code from reading, grepping or editing a git checkout that is far behind its remote. Warns when a little behind, blocks once when a lot behind.",
+  "author": { "name": "Albert Nahas", "url": "https://github.com/albertnahas" },
+  "homepage": "https://github.com/albertnahas/git-freshness",
+  "repository": "https://github.com/albertnahas/git-freshness",
+  "license": "MIT",
+  "keywords": ["git", "hooks", "stale", "freshness", "pretooluse", "agents"]
+}
