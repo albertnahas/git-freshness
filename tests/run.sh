@@ -47,7 +47,28 @@ pinned="$(clone_behind pinned 60)"; touch "$pinned/.claude-freshness-ignore"
 check "ignore marker: silent"              silent "$(run s1 Read "$pinned/x")"
 
 check "outside any repo: silent"           silent "$(run s1 Read "$T/nowhere/x")"
+check "file outside a repo ignores cwd"    silent "$(jq -nc --arg p "$T/nowhere/x" --arg d "$far" '{session_id:"s9",tool_name:"Read",tool_input:{file_path:$p},cwd:$d}' | "$HOOK")"
 check "unmatched tool: silent"             silent "$(echo '{"session_id":"s","tool_name":"Bash","tool_input":{},"cwd":"/nonexistent"}' | "$HOOK")"
+
+bash_run() {  # bash_run <session> <command> <cwd>
+  jq -nc --arg s "$1" --arg c "$2" --arg d "$3" \
+    '{session_id:$s, tool_name:"Bash", tool_input:{command:$c}, cwd:$d}' | "$HOOK"
+}
+sh="$(clone_behind shell 60)"
+check "bash: cd <stale repo> && grep is blocked"  deny   "$(bash_run b1 "cd $sh && grep -rn foo ." /)"
+check "bash: git -C <stale repo> warns after"     allow  "$(bash_run b1 "git -C '$sh' log -1" /)"
+check "bash: absolute path argument is checked"   deny   "$(bash_run b2 "rg foo \"$sh/src\"" /)"
+check "bash: cwd inside stale repo is checked"    deny   "$(bash_run b3 "ls" "$sh")"
+check "bash: relative cd resolves against cwd"    deny   "$(bash_run b4 "cd shell && cat x" "$T")"
+check "bash: outside any repo is silent"          silent "$(bash_run b5 "ls /" /)"
+check "bash: git pull is never blocked"           silent "$(bash_run b6 "cd $sh && git pull --ff-only" /)"
+git -C "$sh" pull -q --ff-only
+check "bash: pull clears the stale count"         silent "$(bash_run b7 "cat $sh/x" /)"
+
+ext="$(clone_behind external 60)"
+check "external pull: blocked before"             deny   "$(run e1 Read "$ext/a")"
+sleep 1; git -C "$ext" pull -q --ff-only
+check "external pull: recounted at once"          silent "$(run e2 Read "$ext/a")"
 
 GIT_FRESHNESS_MAX_BLOCKS=0 check "max_blocks 0: warn only" allow "$(GIT_FRESHNESS_MAX_BLOCKS=0 run s3 Read "$(clone_behind warnonly 60)/x")"
 

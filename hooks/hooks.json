@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Read|Edit|Write|Grep|Glob|NotebookEdit",
+        "matcher": "Read|Edit|Write|Grep|Glob|NotebookEdit|Bash",
         "hooks": [
           { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/git-freshness.sh\"", "timeout": 10 }
         ]
