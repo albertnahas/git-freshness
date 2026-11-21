@@ -141,7 +141,9 @@ A `PreToolUse` hook on `Read`, `Edit`, `Write`, `Grep`, `Glob`, `NotebookEdit` a
 
 1. **Find the target.** For file tools, the path they are about to touch. For Bash, the
    first of: a `cd <dir>`, a `git -C <dir>`, an absolute path argument, the working
-   directory. A file outside any repo is silent; it never falls back to the cwd.
+   directory. A file outside any repo is silent; it never falls back to the cwd. The
+   program a command runs is not a target, whether it is called by path
+   (`/opt/homebrew/bin/git …`) or through a variable (`G=/opt/homebrew/bin/git; $G …`).
 2. **Find the repo** by walking up to the nearest `.git` (dir or file, so worktrees and
    submodules work). No process spawned.
 3. **Read `behind`** from `~/.cache/claude-git-freshness/`, counted against the branch's

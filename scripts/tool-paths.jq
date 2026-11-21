@@ -10,7 +10,11 @@ def unquote: gsub("^[\"']|[\"']$"; "");
   + ( if .tool_name == "Bash" then
         [ ($c | capture("(^|[;&|(])\\s*cd\\s+(?<p>[^\\s;&|)]+)").p | unquote),
           ($c | capture("\\bgit\\s+-C\\s+(?<p>[^\\s;&|)]+)").p | unquote) ]
-        + ([ $c | scan("(?:^|[\\s=])[\"']?(~?/[^\\s;&|)\"'*?]+)") | .[0] ] | .[0:3])
+        # The program a segment runs (`/opt/homebrew/bin/git …`) is not what it reads.
+        + ([ $c | gsub("(?<s>^|[;&|(])\\s*(?:\\w+=\\S*\\s+)*[\"']?~?/[^\\s;&|)\"']*[\"']?"; "\(.s) ")
+               | scan("(^|[\\s=])[\"']?(~?/[^\\s;&|)\"'*?]+)")
+               # \u0002 marks a `=value` path: git-freshness.sh skips it when it names a program.
+               | (if .[0] == "=" then "\u0002" else "" end) + .[1] ] | .[0:3])
         + [ .cwd // empty ]
       # A file tool's path IS its target: outside a repo means silent, not "use cwd".
       else [ $i.file_path // $i.notebook_path // $i.path // .cwd // empty ] end )

@@ -32,10 +32,11 @@ def repo(name, behind):
 fresh, stale = repo("fresh", 0), repo("stale", 10)
 os.makedirs(f"{T}/plain/dir", exist_ok=True)
 
-old = f"{T}/old.sh"
-open(old, "w").write(subprocess.run(["git", "-C", ROOT, "show", f"{OLD_REF}:scripts/git-freshness.sh"],
-                                    check=True, capture_output=True, text=True).stdout)
-os.chmod(old, 0o755)
+# The old ref whole (from v1.1.0 the hook reads tool-paths.jq beside it), and whether it hooks Bash.
+os.makedirs(f"{T}/old")
+subprocess.run(f"git -C '{ROOT}' archive '{OLD_REF}' scripts hooks | tar -x -C '{T}/old'", shell=True, check=True)
+old = f"{T}/old/scripts/git-freshness.sh"
+old_bash = "Bash" in open(f"{T}/old/hooks/hooks.json").read()
 noop = f"{T}/noop.sh"
 open(noop, "w").write("#!/bin/bash\ncat >/dev/null\n"); os.chmod(noop, 0o755)
 new = f"{ROOT}/scripts/git-freshness.sh"
@@ -66,7 +67,7 @@ def ms(script, payload):
 floor = ms(noop, read(f"{fresh}/x"))
 rows = []
 for label, payload, old_matches in SCENARIOS:
-    o = ms(old, payload) if old_matches else None
+    o = ms(old, payload) if old_matches or old_bash else None
     n = ms(new, payload)
     rows.append((label, o, n))
 

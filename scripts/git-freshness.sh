@@ -55,6 +55,8 @@ find_repo() {
   return 1
 }
 for c in "${F[@]:4}"; do
+  # A `=value` naming an executable (G=/opt/homebrew/bin/git) is a program to run, not a read.
+  case "$c" in $'\x02'*) c="${c#?}"; p="${c/#\~/$HOME}"; [ -f "$p" ] && [ -x "$p" ] && continue ;; esac
   [ -n "$c" ] && find_repo "$c" && break
 done
 [ -n "$REPO" ] || exit 0

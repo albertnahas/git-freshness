@@ -61,6 +61,13 @@ check "bash: absolute path argument is checked"   deny   "$(bash_run b2 "rg foo 
 check "bash: cwd inside stale repo is checked"    deny   "$(bash_run b3 "ls" "$sh")"
 check "bash: relative cd resolves against cwd"    deny   "$(bash_run b4 "cd shell && cat x" "$T")"
 check "bash: outside any repo is silent"          silent "$(bash_run b5 "ls /" /)"
+tl="$(clone_behind tool 60)"   # a program installed from a stale checkout (Homebrew's bin/git)
+check "bash: a program's own path is not a read"  silent "$(bash_run p1 "\"$tl/bin/tool\" --version" /)"
+check "bash: ... nor after && or an env prefix"   silent "$(bash_run p2 "ls / && FOO=1 $tl/bin/tool -v" /)"
+check "bash: ... but its path arguments are"      deny   "$(bash_run p3 "$tl/bin/tool \"$tl/src\"" /)"
+mkdir -p "$tl/bin" && touch "$tl/bin/tool" "$tl/notes.md" && chmod +x "$tl/bin/tool"
+check "bash: a program held in a variable is not" silent "$(bash_run p4 "G=$tl/bin/tool; \$G -C \$V log" /)"
+check "bash: an assigned file path still is"      deny   "$(bash_run p5 "F=$tl/notes.md; cat \$F" /)"
 check "bash: git pull is never blocked"           silent "$(bash_run b6 "cd $sh && git pull --ff-only" /)"
 git -C "$sh" pull -q --ff-only
 check "bash: pull clears the stale count"         silent "$(bash_run b7 "cat $sh/x" /)"
