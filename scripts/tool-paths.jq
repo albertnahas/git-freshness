@@ -1,7 +1,8 @@
 # Hook stdin -> "now \x1f session \x1f sync \x1f cwd \x1f candidate paths..." (see git-freshness.sh)
 def unquote: gsub("^[\"']|[\"']$"; "");
 (.tool_input // {}) as $i
-| ($i.command // "") as $c
+# A heredoc's body is the program's input, not a path it is told to read: keep the line that opens it, drop the rest.
+| ($i.command // "" | gsub("(?<h><<-?\\s*['\"]?(?<t>\\w+)['\"]?[^\\n]*)\\n(?:.*\\n)*?\\s*\\k<t>(?=\\n|$)"; "\(.h)")) as $c
 | [ (now | floor | tostring), .session_id // "x",
     (if .tool_name == "Bash"
         and ($c | test("\\bgit\\b[^;&|]*\\b(pull|fetch|merge|rebase|reset|checkout|switch)\\b"))

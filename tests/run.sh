@@ -68,6 +68,13 @@ check "bash: ... but its path arguments are"      deny   "$(bash_run p3 "$tl/bin
 mkdir -p "$tl/bin" && touch "$tl/bin/tool" "$tl/notes.md" && chmod +x "$tl/bin/tool"
 check "bash: a program held in a variable is not" silent "$(bash_run p4 "G=$tl/bin/tool; \$G -C \$V log" /)"
 check "bash: an assigned file path still is"      deny   "$(bash_run p5 "F=$tl/notes.md; cat \$F" /)"
+check "bash: a heredoc body is data, not a read"  silent "$(bash_run h1 "python3 - <<'EOF'
+gh = '$tl/bin/tool' or \"$tl/src\"
+EOF
+echo done" /)"
+check "bash: ... but the command around it is"    deny   "$(bash_run h2 "cat <<EOF > $tl/out
+x $T/y
+EOF" /)"
 check "bash: git pull is never blocked"           silent "$(bash_run b6 "cd $sh && git pull --ff-only" /)"
 git -C "$sh" pull -q --ff-only
 check "bash: pull clears the stale count"         silent "$(bash_run b7 "cat $sh/x" /)"
